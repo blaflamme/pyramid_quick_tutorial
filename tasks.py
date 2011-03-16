@@ -27,9 +27,9 @@ def list_view(request):
 @view_config(route_name='new', renderer='new.mako')
 def new_view(request):
     if request.method == 'POST':
-        if request.params.get('name'):
+        if request.POST.get('name'):
             request.db.execute('insert into tasks (name, closed) values (?, ?)',
-                               [request.params['name'], 0])
+                               [request.POST['name'], 0])
             request.db.commit()
             request.session.flash('New task was successfully added!')
             return HTTPFound(location=request.route_url('list'))
