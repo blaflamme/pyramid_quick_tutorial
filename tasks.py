@@ -12,6 +12,7 @@ from pyramid.view import view_config
 from paste.httpserver import serve
 import sqlite3
 
+logging.basicConfig()
 log = logging.getLogger(__file__)
 
 here = os.path.dirname(os.path.abspath(__file__))
