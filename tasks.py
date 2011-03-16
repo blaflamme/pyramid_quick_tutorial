@@ -5,6 +5,7 @@ from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from pyramid.events import subscriber
 from pyramid.events import ApplicationCreated
+from pyramid.exceptions import NotFound
 from pyramid.httpexceptions import HTTPFound
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from pyramid.view import view_config
@@ -44,6 +45,10 @@ def close_view(request):
     request.db.commit()
     request.session.flash('Task was successfully closed!')
     return HTTPFound(location=request.route_url('list'))
+
+@view_config(context='pyramid.exceptions.NotFound', renderer='notfound.mako')
+def notfound(self):
+    return {}
 
 # subscribers
 @subscriber(NewRequest)

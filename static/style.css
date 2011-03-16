@@ -32,7 +32,7 @@ input {
     border-right: none;
 }
 
-#flash {
+#flash, #notfound {
     font-size: 16px;
     width: 500px;
     text-align: center;
@@ -40,6 +40,13 @@ input {
 	border-top: 2px solid #7a9eec;
 	border-bottom: 2px solid #7a9eec;
 	padding: 10px 20px 10px 20px;
+}
+
+#notfound {
+    background-color: #fbe3e4;
+	border-top: 2px solid #fbc2c4;
+	border-bottom: 2px solid #fbc2c4;
+	padding: 0 20px 30px 20px;
 }
 
 #tasks {
