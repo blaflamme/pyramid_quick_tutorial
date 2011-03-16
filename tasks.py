@@ -14,6 +14,8 @@ import sqlite3
 
 log = logging.getLogger(__file__)
 
+here = os.path.dirname(os.path.abspath(__file__))
+
 # views
 @view_config(route_name='list', renderer='list.mako')
 def list_view(request):
@@ -56,7 +58,7 @@ def close_db_connection(request):
 @subscriber(ApplicationCreated)
 def db_init(event):
     log.warn('Initializing database...')
-    f = open('schema.sql', 'r')
+    f = open(os.path.join(here, 'schema.sql'), 'r')
     stmt = f.read()
     settings = event.app.registry.settings
     db = sqlite3.connect(settings['db'])
@@ -66,7 +68,6 @@ def db_init(event):
 
 if __name__ == '__main__':
     # configuration settings
-    here = os.path.dirname(os.path.abspath(__file__))
     settings = {}
     settings['reload_all'] = True
     settings['debug_all'] = True
