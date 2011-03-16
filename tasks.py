@@ -71,7 +71,7 @@ if __name__ == '__main__':
     settings = {}
     settings['reload_all'] = True
     settings['debug_all'] = True
-    settings['mako.directories'] = here
+    settings['mako.directories'] = os.path.join(here, 'templates')
     settings['db'] = os.path.join(here, 'tasks.db')
     # session factory
     session_factory = UnencryptedCookieSessionFactoryConfig('itsaseekreet')
