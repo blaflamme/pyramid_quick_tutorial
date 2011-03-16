@@ -1,7 +1,10 @@
-from os import getcwd
+import os
+import logging
 
 from pyramid.config import Configurator
-from pyramid.events import NewRequest, ApplicationCreated
+from pyramid.events import NewRequest
+from pyramid.events import subscriber
+from pyramid.events import ApplicationCreated
 from pyramid.httpexceptions import HTTPFound
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from pyramid.view import view_config
@@ -9,15 +12,17 @@ from pyramid.view import view_config
 from paste.httpserver import serve
 import sqlite3
 
+log = logging.getLogger(__file__)
+
 # views
 @view_config(route_name='list', renderer='list.mako')
-def list(request):
+def list_view(request):
     rs = request.db.execute("select id, name from tasks where closed = 0")
     tasks = [dict(id=row[0], name=row[1]) for row in rs.fetchall()]
     return {'tasks': tasks}
 
 @view_config(route_name='new', renderer='new.mako')
-def new(request):
+def new_view(request):
     if request.method == 'POST':
         if request.params.get('name'):
             request.db.execute('insert into tasks (name, closed) values (?, ?)',
@@ -30,7 +35,7 @@ def new(request):
     return {}
 
 @view_config(route_name='close')
-def close(request):
+def close_view(request):
     task_id = int(request.matchdict['id'])
     request.db.execute("update tasks set closed = ? where id = ?", (1, task_id))
     request.db.commit()
@@ -38,20 +43,19 @@ def close(request):
     return HTTPFound(location=request.route_url('list'))
 
 # subscribers
-def add_subscribers(event):
+@subscriber(NewRequest)
+def new_request_subscriber(event):
     request = event.request
-    open_db_connection(request)
-    request.add_finished_callback(close_db_connection)
-
-def open_db_connection(request):
     settings = request.registry.settings
     request.db = sqlite3.connect(settings['db'])
+    request.add_finished_callback(close_db_connection)
 
 def close_db_connection(request):
     request.db.close()
     
+@subscriber(ApplicationCreated)
 def db_init(app):
-    print 'Initializing database...'
+    log.warn('Initializing database...')
     f = open('schema.sql', 'r')
     stmt = f.read()
     settings = app.app.registry.settings
@@ -62,25 +66,23 @@ def db_init(app):
 
 if __name__ == '__main__':
     # configuration settings
+    here = os.path.dirname(os.path.abspath(__file__))
     settings = {}
     settings['reload_all'] = True
     settings['debug_all'] = True
-    settings['mako.directories'] = '.'
-    settings['db'] = 'tasks.db'
+    settings['mako.directories'] = here
+    settings['db'] = os.path.join(here, 'tasks.db')
     # session factory
     session_factory = UnencryptedCookieSessionFactoryConfig('itsaseekreet')
     # configuration setup
     config = Configurator(settings=settings, session_factory=session_factory)
-    # subscribers
-    config.add_subscriber(add_subscribers, NewRequest)
-    config.add_subscriber(db_init, ApplicationCreated)
     # routes setup
     config.add_route('list', '/')
     config.add_route('new', '/new')
     config.add_route('close', '/close/{id}')
     # static view setup
-    config.add_static_view('static', getcwd()+'/static')
-    # 
+    config.add_static_view('static', os.path.join(here, 'static'))
+    # scan for @view_config and @subscriber decorators
     config.scan()
     # serve app
     app = config.make_wsgi_app()
