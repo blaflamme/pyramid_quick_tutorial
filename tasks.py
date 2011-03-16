@@ -12,6 +12,7 @@ from pyramid.view import view_config
 from paste.httpserver import serve
 import sqlite3
 
+logging.basicConfig()
 log = logging.getLogger(__file__)
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -26,9 +27,9 @@ def list_view(request):
 @view_config(route_name='new', renderer='new.mako')
 def new_view(request):
     if request.method == 'POST':
-        if request.params.get('name'):
+        if request.POST.get('name'):
             request.db.execute('insert into tasks (name, closed) values (?, ?)',
-                               [request.params['name'], 0])
+                               [request.POST['name'], 0])
             request.db.commit()
             request.session.flash('New task was successfully added!')
             return HTTPFound(location=request.route_url('list'))
