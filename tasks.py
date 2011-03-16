@@ -54,11 +54,11 @@ def close_db_connection(request):
     request.db.close()
     
 @subscriber(ApplicationCreated)
-def db_init(app):
+def db_init(event):
     log.warn('Initializing database...')
     f = open('schema.sql', 'r')
     stmt = f.read()
-    settings = app.app.registry.settings
+    settings = event.app.registry.settings
     db = sqlite3.connect(settings['db'])
     db.executescript(stmt)
     db.commit()
