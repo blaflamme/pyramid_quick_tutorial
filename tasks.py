@@ -47,7 +47,7 @@ def close_view(request):
     return HTTPFound(location=request.route_url('list'))
 
 @view_config(context='pyramid.exceptions.NotFound', renderer='notfound.mako')
-def notfound(self):
+def notfound_view(self):
     return {}
 
 # subscribers
